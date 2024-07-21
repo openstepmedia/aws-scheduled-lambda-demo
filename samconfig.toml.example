@@ -1,0 +1,16 @@
+#
+# Example .toml file:
+#
+# Usage:  
+# sam deploy --config-file samconfig.toml --debug
+# sam delete --config-file samconfig.toml
+#
+version = 0.1
+[default.deploy.parameters]
+stack_name = "DemoScheduledLambdaFunction20240721"
+resolve_s3 = true
+s3_prefix = "DemoScheduledLambdaFunction20240721"
+region = "<AWS_REGION>"
+profile = "<AWS_PROFILE>"
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+image_repositories = []

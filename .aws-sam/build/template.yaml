@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Simple stack that uses EventBridge schedules to trigger a lambda function.
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Resources:
+  ScheduledLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ScheduledLambdaFunction
+      Handler: app.handler
+      Runtime: nodejs20.x
+      Architectures:
+      - x86_64
+    Metadata:
+      SamResourceId: ScheduledLambdaFunction
+  ScheduledLambdaFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn:
+    - ScheduledLambdaFunction
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${ScheduledLambdaFunction}
+      RetentionInDays: 7
+  MyFirstSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: MySchedule
+      ScheduleExpression: rate(5 minute)
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      Target:
+        Arn:
+          Fn::GetAtt:
+          - ScheduledLambdaFunction
+          - Arn
+        RoleArn:
+          Fn::GetAtt:
+          - MyFirstScheduleRole
+          - Arn
+  MyFirstScheduleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - scheduler.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: MyFirstScheduleRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource:
+            - Fn::GetAtt:
+              - ScheduledLambdaFunction
+              - Arn
